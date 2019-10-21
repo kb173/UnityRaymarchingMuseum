@@ -4,7 +4,7 @@
 public class RaymarchingShape : MonoBehaviour
 {
 
-    public enum ShapeType { Sphere, Cube, Torus };
+    public enum ShapeType { Sphere, Cube, Torus, Mandelbulb };
     public enum Operation { None, Blend, Cut, Mask }
 
     public ShapeType shapeType;

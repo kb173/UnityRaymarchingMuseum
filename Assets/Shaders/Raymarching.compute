@@ -10,8 +10,11 @@ float3 _Light;
 bool positionLight;
 
 static const float maxDst = 80;
-static const float epsilon = 0.001f;
+static const float epsilon = 0.005f;
 static const float shadowBias = epsilon * 50;
+
+#define FractalIterations 5
+#define Bailout 25.0
 
 struct RaymarchingShape {
     
@@ -32,6 +35,37 @@ struct Ray {
     float3 origin;
     float3 direction;
 };
+
+float MandelbulbDistance(float3 eye, float3 centre, float power)
+{
+    // Scale (http://jamie-wong.com/2016/07/15/ray-marching-signed-distance-functions/#uniform-scaling)
+    eye = eye / 10.0f - centre / 10.0f;
+    
+    float3 z = eye;
+    float dr = 1.0;
+    float r = 0.0;
+    
+    for (int i = 0; i < FractalIterations; ++i) {
+        r = length(z);
+        if (r > Bailout) break;
+
+       // Convert to polar coordinates
+       float theta = asin(z.z / r);
+       float phi = atan2(z.y, z.x);
+       dr =  pow(r, power - 1.0) * power * dr + 1.0;
+
+       // Ccale and rotate the point
+       float zr = pow(r, power);
+       theta = theta * power;
+       phi = phi * power;
+
+       // Convert back to cartesian coordinates
+       z = zr * float3(cos(theta) * cos(phi), cos(theta) * sin(phi), sin(theta));
+       z+=eye;
+    }
+    
+    return (0.5*log(r)*r/dr) * 10.0f; // Uniform scaling again
+}
 
 float SphereDistance(float3 eye, float3 centre, float radius) {
     return distance(eye, centre) - radius;
@@ -133,6 +167,9 @@ float GetRaymarchingShapeDistance(RaymarchingShape shape, float3 eye) {
     }
     else if (shape.shapeType == 2) {
         return TorusDistance(eye, shape.position, shape.size.x, shape.size.y);
+    }
+    else if (shape.shapeType == 3) {
+        return MandelbulbDistance(eye, shape.position, shape.size.y);
     }
 
     return maxDst;
