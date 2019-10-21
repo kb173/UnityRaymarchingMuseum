@@ -272,8 +272,19 @@ void CSMain (uint3 id : SV_DispatchThreadID)
 
             float dstToLight = (positionLight)?distance(offsetPos,_Light):maxDst;
             float shadow = CalculateShadow(ray, dstToLight);
-
-            Destination[id.xy] = float4(col * lighting * shadow ,1);
+            
+            // Add a little outline flow effect by adding the number of steps it took (edges take more)
+            float outline = (float)marchSteps / 120.0;
+            
+            // If the result is far from the camera, make it transparent based on how far away it is
+            if (rayDst > maxDst / 2.0) {
+                Destination[id.xy] = lerp(Source[id.xy],
+                                          float4(col * lighting * shadow + outline, 1),
+                                          1.0 - (rayDst - maxDst / 2.0) / (maxDst / 2.0));
+            } else {
+                Destination[id.xy] = float4(col * lighting * shadow + outline, 1);
+            }
+            
 
             break;
         }
