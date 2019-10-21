@@ -11,11 +11,17 @@ public class RaymarchingCamera : MonoBehaviour
     Camera cam;
     Light lightSource;
     List<ComputeBuffer> buffersToDispose;
+    List<RaymarchingShape> raymarchingShapes;
+    RaymarchingShapeData[] raymarchingShapeData;
 
     void Init()
     {
         cam = Camera.current;
         lightSource = FindObjectOfType<Light>();
+
+        // Assuming the scene doesn't change after loading!
+        raymarchingShapes = GetAllRaymarchingShapes();
+        raymarchingShapeData = GetRaymarchingShapeData();
     }
 
 
@@ -44,7 +50,7 @@ public class RaymarchingCamera : MonoBehaviour
         }
     }
 
-    void CreateScene()
+    private List<RaymarchingShape> GetAllRaymarchingShapes()
     {
         // Find all raymarching shapes in the scene
         List<RaymarchingShape> allRaymarchingShapes = new List<RaymarchingShape>(FindObjectsOfType<RaymarchingShape>());
@@ -70,16 +76,20 @@ public class RaymarchingCamera : MonoBehaviour
                     }
                 }
             }
-
         }
 
+        return allRaymarchingShapes;
+    }
+
+    RaymarchingShapeData[] GetRaymarchingShapeData()
+    {
         // Extract the data from the raymarching shapes
-        RaymarchingShapeData[] shapeData = new RaymarchingShapeData[orderedRaymarchingShapes.Count];
-        for (int i = 0; i < orderedRaymarchingShapes.Count; i++)
+        RaymarchingShapeData[] data = new RaymarchingShapeData[raymarchingShapes.Count];
+        for (int i = 0; i < raymarchingShapes.Count; i++)
         {
-            var s = orderedRaymarchingShapes[i];
+            var s = raymarchingShapes[i];
             Vector3 col = new Vector3(s.colour.r, s.colour.g, s.colour.b);
-            shapeData[i] = new RaymarchingShapeData()
+            data[i] = new RaymarchingShapeData()
             {
                 position = s.Position,
                 scale = s.Scale,
@@ -91,11 +101,16 @@ public class RaymarchingCamera : MonoBehaviour
             };
         }
 
+        return data;
+    }
+
+    void CreateScene()
+    {
         // Pass the shapes to the raymarching shader as a buffer
-        ComputeBuffer shapeBuffer = new ComputeBuffer(shapeData.Length, RaymarchingShapeData.GetSize());
-        shapeBuffer.SetData(shapeData);
+        ComputeBuffer shapeBuffer = new ComputeBuffer(raymarchingShapeData.Length, RaymarchingShapeData.GetSize());
+        shapeBuffer.SetData(raymarchingShapeData);
         raymarching.SetBuffer(0, "shapes", shapeBuffer);
-        raymarching.SetInt("numRaymarchingShapes", shapeData.Length);
+        raymarching.SetInt("numRaymarchingShapes", raymarchingShapeData.Length);
 
         buffersToDispose.Add(shapeBuffer);
     }

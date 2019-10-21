@@ -9,12 +9,12 @@ float4x4 _CameraInverseProjection;
 float3 _Light;
 bool positionLight;
 
-static const float maxDst = 80;
-static const float epsilon = 0.005f;
+static const float maxDst = 35;
+static const float epsilon = 0.02f;
 static const float shadowBias = epsilon * 50;
 
-#define FractalIterations 5
-#define Bailout 25.0
+#define FractalIterations 7
+#define Bailout 15.0
 
 struct RaymarchingShape {
     
@@ -36,6 +36,7 @@ struct Ray {
     float3 direction;
 };
 
+// Adapted from http://blog.hvidtfeldts.net/index.php/2011/09/distance-estimated-3d-fractals-v-the-mandelbulb-different-de-approximations/
 float MandelbulbDistance(float3 eye, float3 centre, float power)
 {
     // Scale (http://jamie-wong.com/2016/07/15/ray-marching-signed-distance-functions/#uniform-scaling)
@@ -54,7 +55,7 @@ float MandelbulbDistance(float3 eye, float3 centre, float power)
        float phi = atan2(z.y, z.x);
        dr =  pow(r, power - 1.0) * power * dr + 1.0;
 
-       // Ccale and rotate the point
+       // Scale and rotate the point
        float zr = pow(r, power);
        theta = theta * power;
        phi = phi * power;
