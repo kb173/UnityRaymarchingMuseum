@@ -10,12 +10,12 @@ float3 _Light;
 bool positionLight;
 
 static const float maxDst = 40;
-static const float epsilon = 0.03f;
+static const float epsilon = 0.01f;
 static const float shadowBias = epsilon * 50;
 
-static const int maxSteps = 25;
+static const int maxSteps = 35;
 
-#define FractalIterations 4
+#define FractalIterations 5
 #define Bailout 2.0
 
 struct RaymarchingShape {
@@ -262,7 +262,7 @@ void CSMain (uint3 id : SV_DispatchThreadID)
             float3 col = sceneInfo.xyz;
 
             // If the result is far from the camera, make it transparent based on how far away it is
-            float3 colScaled = ((float)marchSteps / (float)maxSteps) * col;
+            float3 colScaled = ((float)marchSteps / ((float)maxSteps * 1.5f)) * col;
             
             if (rayDst > maxDst / 2.0) {
                 Destination[id.xy] = lerp(Source[id.xy],
