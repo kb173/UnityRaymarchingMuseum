@@ -5,6 +5,8 @@ public class FirstPersonCamera : MonoBehaviour
     public float turnSpeed = 1.0f;
     public float moveSpeed = 5.0f;
 
+    public float height = 2.5f;
+
     private float xRotation;
     private float yRotation;
 
@@ -28,6 +30,9 @@ public class FirstPersonCamera : MonoBehaviour
         var movementVector = new Vector3(hMove, 0f, vMove);
 
         transform.Translate(movementVector * Time.deltaTime * moveSpeed);
+
+        // Lock movement on y axis
+        transform.position = new Vector3(transform.position.x, height, transform.position.z);
     }
 
     void Update()
